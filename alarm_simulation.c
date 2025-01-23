@@ -3,18 +3,20 @@
 #include <time.h>
 #include <string.h>
 #include <Windows.h>
+#include <conio.h> 
+
 #define MAX_ALARMS 5
 
-// Structure to store alarm information
+
 typedef struct {
     int hour;
     int minute;
+    int triggered; 
 } Alarm;
 
 Alarm alarms[MAX_ALARMS];
 int alarm_count = 0;
 
-// Function prototypes
 void display_time();
 void manage_alarms();
 void add_alarm();
@@ -59,10 +61,20 @@ void display_time() {
         current_time = localtime(&rawtime);
 
         // Clear the console
-        printf("\033[H\033[J");
+        system("cls");
 
         printf("Current Time: %02d:%02d:%02d\n", current_time->tm_hour, current_time->tm_min, current_time->tm_sec);
-        check_alarms(current_time);   
+        check_alarms(current_time);
+
+        printf("\nPress 'q' and Enter to return to the main menu...\n");
+        Sleep(1000); 
+
+        if (_kbhit()) { 
+            char c = _getch(); 
+            if (c == 'q' || c == 'Q') {
+                break;
+            }
+        }
     }
 }
 
@@ -98,6 +110,7 @@ void manage_alarms() {
         }
     }
 }
+
 void add_alarm() {
     if (alarm_count >= MAX_ALARMS) {
         printf("\nAlarm limit reached. Cannot add more alarms.\n");
@@ -115,6 +128,7 @@ void add_alarm() {
 
     alarms[alarm_count].hour = hour;
     alarms[alarm_count].minute = minute;
+    alarms[alarm_count].triggered = 0; 
     alarm_count++;
 
     printf("Alarm set for %02d:%02d\n", hour, minute);
@@ -146,7 +160,12 @@ void remove_alarm() {
 void check_alarms(struct tm *current_time) {
     for (int i = 0; i < alarm_count; i++) {
         if (alarms[i].hour == current_time->tm_hour && alarms[i].minute == current_time->tm_min) {
-            printf("\n BRACE YOURSELF TIME HAS COME,BE READY %02d:%02d \n", alarms[i].hour, alarms[i].minute);
+            if (!alarms[i].triggered) {
+                printf("\n*** Alarm! Time: %02d:%02d ***\n", alarms[i].hour, alarms[i].minute);
+                alarms[i].triggered = 1; 
+            }
+        } else {
+            alarms[i].triggered = 0; 
         }
     }
 }
